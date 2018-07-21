@@ -22,11 +22,14 @@ let args = require( 'yargs' )
 const data = args.data === '-' ? getStdin() : Promise.resolve( args.data )
 
 data.then( str => {
-  return json2Graphite( args.prefix, JSON.parse( str ), args.graphite )
+  return json2Graphite( {
+    prefix: args.prefix,
+    graphiteDsn: args.graphite,
+  }, JSON.parse( str ) )
 } ).then( () => {
   process.exit( 0 );
 } ).catch( err => {
-  console.err( err );
+  console.log( err );
   process.exit( 1 );
 } );
 
