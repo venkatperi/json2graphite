@@ -11,6 +11,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "child-process-promise": "^2.2.1",
     "get-stdin": "^6.0.0",
     "graphite": "^0.1.2",
     "lodash": "^4.17.10",

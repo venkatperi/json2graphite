@@ -18,36 +18,43 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
-const graphite = require( 'graphite' );
-const util = require( 'util' );
 
-class Graphite {
-  constructor( { host, port = 2003 } ) {
-    this._client = graphite.createClient( `plaintext://${host}:${port}/` );
-    let that = this;
-    ['write', 'writeTagged'].forEach( x =>
-      that[`_${x}`] = ( ...args ) =>
-        that.finally(
-          util.promisify( this._client[x] )
-            .bind( this._client )( ...args ) ) )
-  }
+const json2Graphite = require( '../lib/json2Graphite' )
+const assert = require( 'assert' );
+const { expect, serverInfo } = require( './fixture/server' )
+const pexec = require( 'child-process-promise' );
 
-  finally( p ) {
-    return p
-      .then( () => this._client.end() )
-      .catch( err => {
-        this._client.end()
-        throw err
+const metrics = [
+  {
+    a: 1,
+    b: { c: 3 },
+  },
+]
+
+describe( 'cli', function () {
+
+  it( 'sends flattened metrics', function ( done ) {
+    const ts = Date.now()
+    const ts2 = Math.floor( ts / 1000 )
+    let cmd = `/usr/bin/env node index.js --host ${serverInfo.host} --port ${serverInfo.port} --metrics '${JSON.stringify( metrics[0] )}' --timestamp ${ts}`
+    expect( `a 1 ${ts2}\nb.c 3 ${ts2}\n`, done )
+    pexec.exec( cmd )
+      .then( ( res ) => {
       } )
-  }
+      .catch( done )
+  } )
 
-  write( opts = {} ) {
-    if ( opts.tags ) {
-      return this._writeTagged( opts.metrics, opts.tags, opts.timestamp )
-    }
-    return this._write( opts.metrics, opts.timestamp )
-  }
 
-}
+  it( 'with prefix', function ( done ) {
+    const ts = Date.now()
+    const ts2 = Math.floor( ts / 1000 )
+    let cmd = `/usr/bin/env node index.js --host ${serverInfo.host} --port ${serverInfo.port} --metrics '${JSON.stringify( metrics[0] )}' --prefix "x.y" --timestamp ${ts}`
+    expect( `x.y.a 1 ${ts2}\nx.y.b.c 3 ${ts2}\n`, done )
+    pexec.exec( cmd )
+      .then( ( res ) => {
+      } )
+      .catch( done )
+  } )
 
-module.exports = Graphite
+
+} )

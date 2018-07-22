@@ -19,21 +19,28 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 const net = require( 'net' );
+const { EventEmitter } = require( 'events' );
 
-module.exports = ( ...args ) => {
-  return new Promise( ( resolve, reject ) => {
-    const server = net.createServer( socket => {
-      let ret = '';
-
+class FakeGraphiteServer extends EventEmitter {
+  constructor( ...args ) {
+    super()
+    let that = this
+    this._server = net.createServer( socket => {
+      let data = ''
       socket.setEncoding( 'utf8' );
-
-      socket.on( 'data', chunk => ret += chunk )
-      socket.on( 'close', () => resolve( ret ) );
-      socket.on( 'error', err => reject( err ) );
+      socket.on( 'data', chunk => data += chunk )
+        .on( 'close', () => that.emit( 'data', data ) )
+        .on( 'error', err => that.emit( 'error', err ) );
     } )
 
-    server.on( 'error', err => reject( err ) );
-    server.listen( ...args )
-  } );
+    this._server.listen( ...args )
+  }
+
+  close() {
+    this._server.close()
+  }
+
 }
+
+module.exports = FakeGraphiteServer
 

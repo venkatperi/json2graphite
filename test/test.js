@@ -20,35 +20,46 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 const json2Graphite = require( '../lib/json2Graphite' )
-const fakeGraphiteServer = require( './fixture/fakeGraphiteServer' )
 const assert = require( 'assert' );
-
-const serverInfo = {
-  port: 20003,
-  host: '127.0.0.1',
-}
-
-const graphiteDsn = `plaintext://${serverInfo.host}:${serverInfo.port}/`
-
+const { server, serverInfo } = require( './fixture/server' )
 
 describe( 'json2Graphite', function () {
-  let server = undefined
-  beforeEach( function () {
-    server = fakeGraphiteServer( serverInfo.port, serverInfo.host )
-  } )
 
-  it( 'sends flattened data to graphite with prefix', function ( done ) {
+  it( 'sends flattened metrics', function ( done ) {
     const ts = Date.now()
     const ts2 = Math.floor( ts / 1000 )
-    json2Graphite( { prefix: 'test', graphiteDsn }, {
-      a: 1,
-      b: { c: 3 },
-    }, ts )
+    json2Graphite( {
+      host: serverInfo.host, port: serverInfo.port, metrics: {
+        a: 1,
+        b: { c: 3 },
+      }, timestamp: ts,
+    } )
 
-    server.then( res => {
-      assert.equal( res, `test.a 1 ${ts2}\ntest.b.c 3 ${ts2}\n` )
+    server.once( 'data', res => {
+      assert.equal( res, `a 1 ${ts2}\nb.c 3 ${ts2}\n` )
       done()
-    } ).catch( done )
+    } )
   } )
+
+
+  it( 'adds a prefix to each metric', function ( done ) {
+    const ts = Date.now()
+    const ts2 = Math.floor( ts / 1000 )
+    json2Graphite( {
+      prefix: 'x.y',
+      host: serverInfo.host,
+      port: serverInfo.port,
+      metrics: {
+        a: 1,
+        b: { c: 3 },
+      }, timestamp: ts,
+    } )
+
+    server.once( 'data', res => {
+      assert.equal( res, `x.y.a 1 ${ts2}\nx.y.b.c 3 ${ts2}\n` )
+      done()
+    } )
+  } )
+
 } )
 

@@ -18,36 +18,26 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
-const graphite = require( 'graphite' );
-const util = require( 'util' );
 
-class Graphite {
-  constructor( { host, port = 2003 } ) {
-    this._client = graphite.createClient( `plaintext://${host}:${port}/` );
-    let that = this;
-    ['write', 'writeTagged'].forEach( x =>
-      that[`_${x}`] = ( ...args ) =>
-        that.finally(
-          util.promisify( this._client[x] )
-            .bind( this._client )( ...args ) ) )
-  }
+const FakeGraphiteServer = require( './FakeGraphiteServer' )
+const assert = require( 'assert' );
 
-  finally( p ) {
-    return p
-      .then( () => this._client.end() )
-      .catch( err => {
-        this._client.end()
-        throw err
-      } )
-  }
-
-  write( opts = {} ) {
-    if ( opts.tags ) {
-      return this._writeTagged( opts.metrics, opts.tags, opts.timestamp )
-    }
-    return this._write( opts.metrics, opts.timestamp )
-  }
-
+const serverInfo = {
+  port: 20003,
+  host: '127.0.0.1',
 }
 
-module.exports = Graphite
+const server = new FakeGraphiteServer( serverInfo.port, serverInfo.host )
+
+function expect( expected, done ) {
+  server.once( 'data', res => {
+    assert.equal( res, expected )
+    done()
+  } )
+}
+
+module.exports = {
+  server,
+  serverInfo,
+  expect,
+}
