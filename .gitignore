@@ -9,6 +9,5 @@ coverage/
 *.lock
 tmp/
 gen/
-build/
 
 

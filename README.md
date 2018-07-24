@@ -1,5 +1,8 @@
 # json2graphite
 ### Send JSON metrics to Graphite
+`json2Graphite` is a command line utility that sends metrics data in `JSON` format to a `Graphite`/`Carbon` server.
+
+By default, `json2Graphite` reads metrics data from `stdin`. 
 
 # Installation
 
