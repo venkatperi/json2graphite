@@ -1,6 +1,6 @@
 {
   "name": "json2graphite",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Send JSON metrics to Graphite",
   "main": "index.js",
   "bin": "./bin/json2graphite",
