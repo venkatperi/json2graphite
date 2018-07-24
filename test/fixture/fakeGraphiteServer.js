@@ -28,7 +28,10 @@ class FakeGraphiteServer extends EventEmitter {
     this._server = net.createServer( socket => {
       let data = ''
       socket.setEncoding( 'utf8' );
-      socket.on( 'data', chunk => data += chunk )
+      socket.on( 'data', chunk => {
+        console.log( chunk )
+        return data += chunk;
+      } )
         .on( 'close', () => that.emit( 'data', data ) )
         .on( 'error', err => that.emit( 'error', err ) );
     } )

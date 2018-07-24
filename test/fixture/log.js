@@ -19,42 +19,18 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-const { expect, serverInfo } = require( './fixture/server' )
-const pexec = require( 'child-process-promise' );
+const FakeGraphiteServer = require( './FakeGraphiteServer' )
 
-const metrics = [
-  {
-    a: 1,
-    b: { c: 3 },
-  },
-]
+const serverInfo = {
+  port: 2003,
+  host: '127.0.0.1',
+}
 
-const CMD = `${__dirname}/../bin/json2graphite`
+const server = new FakeGraphiteServer( serverInfo.port, serverInfo.host )
 
-describe( 'cli', function () {
+server.on( 'data', console.log )
 
-  it( 'sends flattened metrics', function ( done ) {
-    const ts = Date.now()
-    const ts2 = Math.floor( ts / 1000 )
-    let cmd = `${CMD} --host ${serverInfo.host} --port ${serverInfo.port} --metrics '${JSON.stringify( metrics[0] )}' --timestamp ${ts}`
-    expect( `a 1 ${ts2}\nb.c 3 ${ts2}\n`, done )
-    pexec.exec( cmd )
-      .then( ( res ) => {
-      } )
-      .catch( done )
-  } )
-
-
-  it( 'with prefix', function ( done ) {
-    const ts = Date.now()
-    const ts2 = Math.floor( ts / 1000 )
-    let cmd = `${CMD} --host ${serverInfo.host} --port ${serverInfo.port} --metrics '${JSON.stringify( metrics[0] )}' --prefix "x.y" --timestamp ${ts}`
-    expect( `x.y.a 1 ${ts2}\nx.y.b.c 3 ${ts2}\n`, done )
-    pexec.exec( cmd )
-      .then( ( res ) => {
-      } )
-      .catch( done )
-  } )
-
-
-} )
+module.exports = {
+  server,
+  serverInfo,
+}
