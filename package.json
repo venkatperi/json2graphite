@@ -1,14 +1,14 @@
 {
   "name": "json2graphite",
   "version": "1.0.0",
-  "description": "Send JSON data to Graphite",
+  "description": "Send JSON metrics to Graphite",
   "main": "index.js",
   "bin": "./bin/json2graphite",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha",
     "pkg": "pkg --out-path build package.json"
   },
-  "author": "",
+  "author": "Venkat Peri <venkatperi@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "child-process-promise": "^2.2.1",
@@ -19,5 +19,16 @@
   },
   "devDependencies": {
     "mocha": "^5.2.0"
+  },
+  "keywords": [
+    "graphite",
+    "json",
+    "metrics",
+    "commandline",
+    "cli"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/venkatperi/json2graphite.git"
   }
 }
